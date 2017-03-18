@@ -1,10 +1,11 @@
 # The functions in this file are to be implemented by students.
 
-import bitio
+from bitio import BitWriter
+from bitio import BitReader
 import huffman
 
 
-def read_tree (bitreader):
+def read_tree(bitreader):
     '''Read a description of a Huffman tree from the given bit reader,
     and construct and return the tree. When this function returns, the
     bit reader should be ready to read the next bit immediately
@@ -23,10 +24,13 @@ def read_tree (bitreader):
     Returns:
       A Huffman tree constructed according to the given description.
     '''
-    pass
+    freq = huffman.make_freq_table(bitreader)
+    tree = huffman.make_tree(freqs)
+
+    return tree
 
 
-def decompress (compressed, uncompressed):
+def decompress(compressed, uncompressed):
     '''First, read a Huffman tree from the 'compressed' stream using your
     read_tree function. Then use that tree to decode the rest of the
     stream and write the resulting symbols to the 'uncompressed'
@@ -41,7 +45,7 @@ def decompress (compressed, uncompressed):
     pass
 
 
-def write_tree (tree, bitwriter):
+def write_tree(tree, bitwriter):
     '''Write the specified Huffman tree to the given bit writer.  The
     tree is written in the format described above for the read_tree
     function.
@@ -55,7 +59,7 @@ def write_tree (tree, bitwriter):
     pass
 
 
-def compress (tree, uncompressed, compressed):
+def compress(tree, uncompressed, compressed):
     '''First write the given tree to the stream 'compressed' using the
     write_tree function. Then use the same tree to encode the data
     from the input stream 'uncompressed' and write it to 'compressed'.
@@ -68,4 +72,16 @@ def compress (tree, uncompressed, compressed):
       compressed: A file stream that will receive the tree description
           and the coded input data.
     '''
-    pass
+    table = huffman.make_encoding_table(tree)
+    uncomp = BitReader(uncompressed)
+    comp = BitWriter(compressed)
+
+    write_tree(tree, comp)
+
+    while uncomp.input:
+        byte = uncomp.readbits(8)
+        comp_byte = table[byte]
+        for bit in comp_byte:
+            comp.writebit(bit)
+
+    compressed.flush()

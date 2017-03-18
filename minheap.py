@@ -5,7 +5,7 @@ class MinHeap:
 
     def add(self, key, value):
         self._array.append((key, value))
-        self.fix_heap_up(len(self._array)-1)
+        self.fix_heap_up(len(self._array) - 1)
 
     def pop_min(self):
         if not self._array:
@@ -36,13 +36,13 @@ class MinHeap:
         return self.lchild(i) >= len(self._array)
 
     def lchild(self, i):
-        return 2*i+1
+        return 2 * i + 1
 
     def rchild(self, i):
-        return 2*i+2
+        return 2 * i + 2
 
     def parent(self, i):
-        return (i-1)//2
+        return (i - 1) // 2
 
     def min_child_index(self, i):
         l = self.lchild(i)
@@ -78,7 +78,8 @@ def test_minheap():
         item2 = our_heap.pop_min()
         if item != item2[0]:
             raise RuntimeError("Unequal elements %s!=%s" % (item, item2[0]))
-        tracing and print("Popped", item)
+        if tracing:
+            print("Popped", item)
 
     for n in range(100):  # length
         print("Testing for length %s" % n)
@@ -89,16 +90,20 @@ def test_minheap():
             for x in s:
                 heapq.heappush(heap, x)
                 our_heap.add(x, None)
-                tracing and print("Added ", x)
+                if tracing:
+                    print("Added ", x)
                 if random.uniform(0, 1) < 0.2:
-                    tracing and print("Popping")
+                    if tracing:
+                        print("Popping")
                     test_pop(heap, our_heap)
             while heap:
-                tracing and print("Popping")
+                if tracing:
+                    print("Popping")
                 test_pop(heap, our_heap)
             if our_heap:
                 raise RuntimeError("Too few elements")
     print("Test finished")
+
 
 if __name__ == '__main__':
     test_minheap()
