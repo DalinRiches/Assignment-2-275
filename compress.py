@@ -2,8 +2,6 @@ import huffman
 import sys
 import util
 
-test ignore
-
 
 def run_compressor(filename):
     with open(filename, 'rb') as uncompressed:
