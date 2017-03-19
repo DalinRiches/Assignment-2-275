@@ -24,8 +24,30 @@ def read_tree(bitreader):
     Returns:
       A Huffman tree constructed according to the given description.
     '''
-    freq = huffman.make_freq_table(bitreader)
-    tree = huffman.make_tree(freqs)
+
+    def get_branch(bitreader, tree=None):
+        bit = bitreader.readbit()
+
+        if bit == 1:
+
+            left = get_branch(bitreader)
+            right = get_branch(bitreader)
+            tree = huffman.TreeBranch(left, right)
+            return tree
+
+        elif bit == 0:
+            bit = bitreader.readbit()
+
+            if bit == 1:
+                byte = bitreader.readbits(8)
+                leaf = huffman.TreeLeaf(byte)
+
+            elif bit == 0:
+                leaf = huffman.TreeLeafEndMessage()
+
+            return leaf
+
+    tree = get_branch(bitreader)
 
     return tree
 
@@ -42,7 +64,19 @@ def decompress(compressed, uncompressed):
           output is written.
 
     '''
-    pass
+    comp = BitReader(compressed)
+    uncomp = BitWriter(uncompressed)
+
+    tree = read_tree(comp)
+    while comp.input:
+
+        uncomp_byte = huffman.decode(tree, comp)
+        if uncomp_byte == None:
+            break
+
+        uncomp.writebits(uncomp_byte, 8)
+
+    uncomp.flush()
 
 
 def write_tree(tree, bitwriter):
