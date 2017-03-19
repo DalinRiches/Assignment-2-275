@@ -68,15 +68,17 @@ def decompress(compressed, uncompressed):
     uncomp = BitWriter(uncompressed)
 
     tree = read_tree(comp)
-    while comp.input:
 
-        uncomp_byte = huffman.decode(tree, comp)
-        if uncomp_byte == None:
+    while True:
+        try:
+            uncomp_byte = huffman.decode(tree, comp)
+            if uncomp_byte == None:
+                raise EOFError
+            uncomp.writebits(uncomp_byte, 8)
+
+        except EOFError:
+            uncomp.writebits(29, 8)
             break
-
-        uncomp.writebits(uncomp_byte, 8)
-
-    uncomp.flush()
 
 
 def write_tree(tree, bitwriter):
@@ -90,7 +92,24 @@ def write_tree(tree, bitwriter):
       tree: A Huffman tree.
       bitwriter: An instance of bitio.BitWriter to write the tree to.
     '''
-    pass
+    if type(tree) == huffman.TreeLeafEndMessage:
+        bitwriter.writebit(0)
+        bitwriter.writebit(0)
+        print("eoM")
+    elif type(tree) == huffman.TreeLeaf:
+        bitwriter.writebit(0)
+        bitwriter.writebit(1)
+        bitwriter.writebits(tree.value, 8)
+        print("leaf " + str(tree.value))
+
+    elif type(tree) == huffman.TreeBranch:
+        bitwriter.writebit(1)
+        left = write_tree(tree.left, bitwriter)
+        right = write_tree(tree.right, bitwriter)
+        print("branch")
+
+    else:
+        pass
 
 
 def compress(tree, uncompressed, compressed):
@@ -111,11 +130,27 @@ def compress(tree, uncompressed, compressed):
     comp = BitWriter(compressed)
 
     write_tree(tree, comp)
+    while True:
+        try:
+            uncomp_btye = uncomp.readbits(8)
+            print(uncomp_btye)
 
-    while uncomp.input:
-        byte = uncomp.readbits(8)
-        comp_byte = table[byte]
-        for bit in comp_byte:
-            comp.writebit(bit)
+            comp_path = table[uncomp_btye]
 
-    compressed.flush()
+            for bit in comp_path:
+                if bit == False:
+                    comp.writebit(0)
+                elif bit == True:
+                    comp.writebit(1)
+            print(comp_path)
+
+        except EOFError:
+            comp_path = table[None]
+            print("EOF")
+
+            for bit in comp_path:
+                comp.writebit(bit)
+            print(comp_path)
+            break
+
+    comp.flush()

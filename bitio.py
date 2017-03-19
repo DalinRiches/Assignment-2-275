@@ -21,13 +21,13 @@ class BitWriter:
         if self.bcount == 8:
             self.flush()
         if bit:
-            self.accumulator |= (1 << (7-self.bcount))
+            self.accumulator |= (1 << (7 - self.bcount))
         self.bcount += 1
 
     def writebits(self, bits, n):
         '''Writes 'n' least significant bits of integer 'bits'.'''
         while n > 0:
-            self.writebit(bits & (1 << (n-1)))
+            self.writebit(bits & (1 << (n - 1)))
             n -= 1
 
     def flush(self):
